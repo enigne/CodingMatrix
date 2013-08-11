@@ -1,5 +1,7 @@
 """
 >>> from hw4 import *
+>>> from vecutil import *
+
 
 Problem 13
 
@@ -54,13 +56,13 @@ True
 
 Problem 17
 
->>> a0 = Vec({'a','b','c','d'}, {'a':1})
->>> a1 = Vec({'a','b','c','d'}, {'b':1})
->>> a2 = Vec({'a','b','c','d'}, {'c':1})
->>> a3 = Vec({'a','b','c','d'}, {'a':1,'c':3})
->>> superset_basis([a0, a3], [a0, a1, a2]) == [Vec({'a', 'c', 'b', 'd'},{'a': 1}), Vec({'a', 'c', 'b', 'd'},{'b':1}),Vec({'a', 'c', 'b', 'd'},{'c': 1})]
-True
+Problem 18
 
+>>> S = [list2vec(v) for v in [[0,0,5,3],[2,0,1,3],[0,0,1,0],[1,2,3,4]]]
+>>> A = [list2vec(v) for v in [[0,0,5,3],[2,0,1,3]]]
+>>> z = list2vec([0,2,1,1])
+>>> exchange(S, A, z) == Vec({0, 1, 2, 3},{0: 0, 1: 0, 2: 1, 3: 0})
+True
 
 
 """
