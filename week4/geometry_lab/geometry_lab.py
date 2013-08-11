@@ -18,12 +18,12 @@ def identity(labels = {'x','y','u'}):
     return Mat((labels,labels),{(i,i):1 for i in labels})
 
 ## Task 2
-def translation(x,y):
+def translation(a,b):
     '''
     Input:  An x and y value by which to translate an image.
     Output:  Corresponding 3x3 translation matrix.
     '''
-    return Mat((de_label,de_label),{('x','u'):x, ('y','u'):y})+identity()
+    return Mat((de_label,de_label),{('x','u'):a, ('y','u'):b,('u','u'):1,('x','x'):1,('y','y'):1})
 
 ## Task 3
 def scale(a, b):
