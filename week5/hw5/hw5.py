@@ -3,11 +3,11 @@
 
 from vecutil import list2vec
 from solver import solve
-from matutil import listlist2mat, coldict2mat
+from matutil import listlist2mat, coldict2mat, mat2rowdict, mat2coldict
 from mat import Mat
 from GF2 import one
 from vec import Vec
-
+from independence import rank, is_independent
 
 
 ## Problem 1
@@ -23,8 +23,8 @@ v2 = list2vec([0,3,3])
 # with appropriate lists of 3 vectors
 
 exchange_S0 = [w0, w1, w2]
-exchange_S1 = [...]
-exchange_S2 = [...]
+exchange_S1 = [v0, w1, w2]
+exchange_S2 = [v0, v1, w2]
 exchange_S3 = [v0, v1, v2]
 
 
@@ -39,13 +39,37 @@ v1 = list2vec([one,0,0])
 v2 = list2vec([one,one,0])
 
 exchange_2_S0 = [w0, w1, w2]
-exchange_2_S1 = [...]
-exchange_2_S2 = [...]
+exchange_2_S1 = [v0, w1, w2]
+exchange_2_S2 = [v0, v1, w2]
 exchange_2_S3 = [v0, v1, v2]
 
 
 
 ## Problem 3
+def exchange(S, A, z):
+    '''
+    Input:
+        - S: a list of vectors, as instances of your Vec class
+        - A: a list of vectors, each of which are in S, with len(A) < len(S)
+        - z: an instance of Vec such that A+[z] is linearly independent
+    Output: a vector w in S but not in A such that Span S = Span ({z} U S - {w})
+    Example:
+        >>> S = [list2vec(v) for v in [[0,0,5,3],[2,0,1,3],[0,0,1,0],[1,2,3,4]]]
+        >>> A = [list2vec(v) for v in [[0,0,5,3],[2,0,1,3]]]
+        >>> z = list2vec([0,2,1,1])
+        >>> exchange(S, A, z) == Vec({0, 1, 2, 3},{0: 0, 1: 0, 2: 1, 3: 0})
+        True
+    '''
+    v = solve(coldict2mat(S),z)
+    for i in range(len(S)):
+        if S[i] not in A and v[i] != 0 :
+            return S[i]
+
+
+
+
+
+
 def morph(S, B):
     '''
     Input:
@@ -61,24 +85,29 @@ def morph(S, B):
         [(Vec({0, 1, 2},{0: 1, 1: 1, 2: 0}), Vec({0, 1, 2},{0: 1, 1: 0, 2: 0})), (Vec({0, 1, 2},{0: 0, 1: 1, 2: 1}), Vec({0, 1, 2},{0: 0, 1: 1, 2: 0})), (Vec({0, 1, 2},{0: 1, 1: 0, 2: 1}), Vec({0, 1, 2},{0: 0, 1: 0, 2: 1}))]
 
     '''
-    pass
+    A = []
+    result = []
+    for z in B :
+        w = exchange(S,A,z)
+        result.append((z,w))
+    return result
 
 
 
 ## Problem 4
 # Please express each solution as a list of vectors (Vec instances)
 
-row_space_1 = [...]
-col_space_1 = [...]
+row_space_1 = [list2vec(v) for v in [[1, 2, 0],[0, 2, 1]]]
+col_space_1 = [list2vec(v) for v in [[0, 1],[1, 0]]]
 
-row_space_2 = [...]
-col_space_2 = [...]
-
-row_space_3 = [...]
-col_space_3 = [...]
-
-row_space_4 = [...]
-col_space_4 = [...]
+row_space_2 = [list2vec(v) for v in [[1, 4, 0, 0], [0, 2, 2, 0], [0, 0, 1, 1]]]
+col_space_2 = [list2vec(v) for v in [[1, 0, 0],[0, 2, 1],[0,0,1]]]
+              
+row_space_3 = [list2vec(v) for v in [[1]]]
+col_space_3 = [list2vec(v) for v in [[1, 2, 3]]]
+              
+row_space_4 = [list2vec(v) for v in [[1, 0],[2, 1]]]
+col_space_4 = [list2vec(v) for v in [[1, 2, 3],[0, 1, 4]]]
 
 
 
@@ -104,7 +133,7 @@ def my_is_independent(L):
     >>> my_is_independent(L[2:5])
     False
     '''
-    pass
+    return rank(L) == len(L)
 
 
 ## Problem 6
@@ -121,7 +150,12 @@ def subset_basis(T):
     >>> subset_basis([a0,a1,a2,a3]) == [Vec({'c', 'b', 'a', 'd'},{'a': 1}), Vec({'c', 'b', 'a', 'd'},{'b': 1}), Vec({'c', 'b', 'a', 'd'},{'c': 1})]
     True
     '''
-    pass
+    S=[]
+    for v in T:
+        S.append(v)
+        if not is_independent(S) :
+            S.remove(v)
+    return S
 
 
 
@@ -134,15 +168,15 @@ def my_rank(L):
     >>> my_rank([list2vec(v) for v in [[1,2,3],[4,5,6],[1.1,1.1,1.1]]])
     2
     '''
-    pass
+    return len(subset_basis(L))
 
 
 ## Problem 8
 # Please give each answer as a boolean
 
-only_share_the_zero_vector_1 = ...
-only_share_the_zero_vector_2 = ...
-only_share_the_zero_vector_3 = ...
+only_share_the_zero_vector_1 = True 
+only_share_the_zero_vector_2 = True
+only_share_the_zero_vector_3 = True
 
 
 
@@ -161,8 +195,13 @@ def direct_sum_decompose(U_basis, V_basis, w):
     >>> direct_sum_decompose(U_basis, V_basis, w) == (Vec({0, 1, 2, 3, 4, 5},{0: 2.0, 1: 4.999999999999972, 2: 0.0, 3: 0.0, 4: 1.0, 5: 0.0}), Vec({0, 1, 2, 3, 4, 5},{0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0, 5: 0.0}))
     True
     '''
-    pass
-
+    W = [u for u in U_basis]
+    W.extend(V_basis)
+    A = coldict2mat(W)
+    x = solve(A,w)
+    xu = list2vec([x[i] for i in range(len(U_basis))])
+    xv = list2vec([x[i] for i in range(len(U_basis),(len(U_basis)+len(V_basis)))])
+    return (coldict2mat(U_basis)*xu, coldict2mat(V_basis)*xv)
 
 
 ## Problem 10
@@ -175,7 +214,9 @@ def is_invertible(M):
     >>> is_invertible(M)
     True
     '''
-    pass
+    R = list(mat2rowdict(M).values())
+    C = list(mat2coldict(M).values())
+    return is_independent(C) and (len(R) == len(C))
 
 
 ## Problem 11
@@ -188,7 +229,10 @@ def find_matrix_inverse(A):
     >>> find_matrix_inverse(M) == Mat(({0, 1, 2}, {0, 1, 2}), {(0, 1): one, (2, 0): 0, (0, 0): 0, (2, 2): one, (1, 0): one, (1, 2): 0, (1, 1): 0, (2, 1): 0, (0, 2): 0})
     True
     '''
-    pass
+    B = mat2rowdict(A)
+    for i in A.D[1]:
+        B[i] = solve(A,Vec(A.D[0],{i:one}))
+    return coldict2mat(B)
 
 
 
@@ -201,4 +245,8 @@ def find_triangular_matrix_inverse(A):
     >>> find_triangular_matrix_inverse(A) == Mat(({0, 1, 2, 3}, {0, 1, 2, 3}), {(0, 1): -0.5, (1, 2): -0.3, (3, 2): 0.0, (0, 0): 1.0, (3, 3): 1.0, (3, 0): 0.0, (3, 1): 0.0, (2, 1): 0.0, (0, 2): -0.05000000000000002, (2, 0): 0.0, (1, 3): -0.87, (2, 3): -0.1, (2, 2): 1.0, (1, 0): 0.0, (0, 3): -3.545, (1, 1): 1.0})
     True
     '''
-    pass
+    B = mat2rowdict(A)
+    for i in A.D[1]:
+        B[i] = solve(A,Vec(A.D[0],{i:1}))
+    return coldict2mat(B)
+
